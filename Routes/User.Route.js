@@ -1,0 +1,51 @@
+const express = require("express");
+const { UserModel } = require("../Models/User.Model");
+const userRouter = express.Router();
+const jwt = require("jsonwebtoken");
+/* For Regisration */
+userRouter.post("/register", async (req, res) => {
+  const { PhoneNumber } = req.body;
+  const checkuser = await UserModel.find({ PhoneNumber });
+  if (checkuser.length === 0) {
+    try {
+      const create = new UserModel({ PhoneNumber });
+      await create.save();
+      res.send("User Created");
+    } catch (err) {
+      res.send(`error:${err}`);
+    }
+  } else {
+    res.send("User Already Created");
+  }
+});
+
+/* For Login */
+userRouter.post("/login", async (req, res) => {
+  const { PhoneNumber } = req.body;
+  console.log(req.body,"i am a body");
+  const checkuser = await UserModel.find({ PhoneNumber });
+  if (checkuser.length > 0) {
+    try {
+      var token = jwt.sign({ UserId: checkuser[0]._id }, "loginornot");
+      res.send(token);
+    } catch (err) {
+      res.send(`error:${err}`);
+    }
+  } else {
+    res.send("Wrong Credentials");
+  }
+});
+//DELETE USER
+userRouter.delete("/delete/:id",async(req,res)=>{
+const ID=req.params.id;
+try{
+  const deletedata=await UserModel.findByIdAndDelete({ _id: ID })
+  res.send("User deleted");
+}
+catch(err){
+  res.send(`error:${err}`)
+}
+})
+module.exports = {
+  userRouter,
+};
